@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  title: Eurovision Voting API
+  description: |
+    Eurovision Voting API is a REST API responsible for manage the votes for Eurovision, where the countries could vote 
+    its favourite country. To provide extra security and ensure the legacy of the vote, the API store the data in 
+    a blockchain.
+  version: 1.0.
+paths:
+  /p2p/nodes:
+    post:
+      summary: |
+        Allow to add nodes to the P2P network
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ip:
+                  type: string
+                  format: ipv4
+                port:
+                  type: number
+                  format: integer
+      responses:
+        200:
+          description: Added successfully
+  /votes/{originCountryCode}/{destinationCountryCode}:
+    post:
+      summary: |
+        This endpoint is called once per country to send it votes.
+      parameters:
+        - name: originCountryCode
+          description: The ISO code of the country that is voting.
+          required: true
+          in: path
+          schema:
+            type: string
+            enum: [ BE, EL, LT, PT, BG, ES, LU, RO, CZ, FR, HU, SI, DK, HR, MT, SK, DE, IT, NL, FI, EE, CY, AT, SE, IE, LV, PL ]
+        - name: destinationCountryCode
+          description: The ISO code of the country voted.
+          required: true
+          in: path
+          schema:
+            type: string
+            enum: [ BE, EL, LT, PT, BG, ES, LU, RO, CZ, FR, HU, SI, DK, HR, MT, SK, DE, IT, NL, FI, EE, CY, AT, SE, IE, LV, PL ]
+      responses:
+        '204':
+          description: Vote accepted
+        '409':
+          description: This country has already voted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: This country has already been voted
+        '404':
+          description: There request payload is not well-formed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: These country is not taking part in the show
+  /votes:
+    get:
+      summary: |
+        This endpoint is called to see every country votes.
+      responses:
+        200:
+          description: Votes obtained by each country
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VotesResponse'
+components:
+  schemas:
+    Result:
+      type: object
+      properties:
+        countryISOCode:
+          type: string
+        votes:
+          type: number
+    VotesResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Result'
+
