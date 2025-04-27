@@ -1,10 +1,42 @@
 package com.rviewer.skeletons.domain.blockchain;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class Block {
     private String hash;
     private String previousHash;
     private long timestamp;
-    private Object data;    // Vote or other data type
+    private Object data;
+
+    public static Block getGenesisBlock() {
+        Block genesis = new Block();
+        genesis.setTimestamp(0L);
+        genesis.setPreviousHash("0");
+        genesis.setData("Genesis Block");
+        genesis.setHash(generateHashFromBlock(genesis));
+        return genesis;
+    }
+
+    public static String generateHashFromBlock(Block block) {
+        try {
+            String input = block.getTimestamp() + block.getPreviousHash() + block.getData().toString();
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public String getHash() {
         return hash;

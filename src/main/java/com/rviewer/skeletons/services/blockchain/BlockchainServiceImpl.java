@@ -14,19 +14,19 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public Block addBlock(String data) {
-        // TODO: Block creation and addition
-        return null;
+        Block newBlock = new Block();
+        newBlock.setData(data);
+        blockchain.addBlock(newBlock);
+        return newBlock;
     }
 
     public boolean isValidChain() {
-        // TODO: Chain validation
-        return false;
+        return blockchain.isValid();
     }
 
     @Override
     public boolean replaceChain(Blockchain newChain) {
-        // TODO: Chain replacement
-        return false;
+        return blockchain.replace(newChain);
     }
 
     @Override
