@@ -1,5 +1,7 @@
 package com.rviewer.skeletons.services.voting;
 
+import com.rviewer.skeletons.domain.blockchain.Country;
+
 public interface VoteService {
 
     /**
@@ -14,8 +16,8 @@ public interface VoteService {
     /**
      * Check if a country has already voted.
      *
-     * @param countryCode The country code to check.
+     * @param country The country code to check.
      * @return boolean Whether the country has voted.
      */
-    boolean hasVoted(String countryCode);
+    boolean hasVoted(Country country);
 }

@@ -4,20 +4,26 @@ import java.util.Objects;
 
 public class Vote {
 
-    private final String origin;
-    private final String destination;
+    private final Country origin;
+    private final Country destination;
+    private long timestamp;
 
-    public Vote(String origin, String destination) {
+    public Vote(Country origin, Country destination, long timestamp) {
         this.origin = origin;
         this.destination = destination;
+        this.timestamp = timestamp;
     }
 
-    public String getOrigin() {
+    public Country getOrigin() {
         return origin;
     }
 
-    public String getDestination() {
+    public Country getDestination() {
         return destination;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     @Override

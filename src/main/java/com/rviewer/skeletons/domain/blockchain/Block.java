@@ -8,20 +8,24 @@ public class Block {
     private String hash;
     private String previousHash;
     private long timestamp;
-    private Object data;
+    private Vote vote;
 
     public static Block getGenesisBlock() {
         Block genesis = new Block();
         genesis.setTimestamp(0L);
         genesis.setPreviousHash("0");
-        genesis.setData("Genesis Block");
         genesis.setHash(generateHashFromBlock(genesis));
         return genesis;
     }
 
     public static String generateHashFromBlock(Block block) {
+        String input = block.getTimestamp() + block.getPreviousHash() +
+                (block.getVote() != null ? block.getVote().toString() : "");
+        return toSha256Hex(input);
+    }
+
+    private static String toSha256Hex(String input) {
         try {
-            String input = block.getTimestamp() + block.getPreviousHash() + block.getData().toString();
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
@@ -34,7 +38,7 @@ public class Block {
 
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("SHA-256 unavailable", e); // Unreachable in practice
         }
     }
 
@@ -62,11 +66,11 @@ public class Block {
         this.timestamp = timestamp;
     }
 
-    public Object getData() {
-        return data;
+    public Vote getVote() {
+        return vote;
     }
 
-    public void setData(Object data) {
-        this.data = data;
+    public void setVote(Vote vote) {
+        this.vote = vote;
     }
 }

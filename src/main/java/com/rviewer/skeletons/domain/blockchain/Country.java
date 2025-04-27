@@ -1,5 +1,8 @@
 package com.rviewer.skeletons.domain.blockchain;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public enum Country {
     BE, EL, LT, PT, BG, ES, LU, RO, CZ,
     FR, HU, SI, DK, HR, MT, SK, DE, IT,
@@ -12,6 +15,12 @@ public enum Country {
         } catch (IllegalArgumentException ex) {
             return false;
         }
+    }
+
+    public static String validCodes() {
+        return Arrays.stream(values())
+                .map(Enum::name)
+                .collect(Collectors.joining(", "));
     }
 }
 

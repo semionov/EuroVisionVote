@@ -1,35 +1,82 @@
 package com.rviewer.skeletons.services.voting;
 
-import com.rviewer.skeletons.domain.blockchain.Blockchain;
+import com.rviewer.skeletons.domain.blockchain.Block;
+import com.rviewer.skeletons.domain.blockchain.Country;
+import com.rviewer.skeletons.domain.blockchain.Vote;
+import com.rviewer.skeletons.domain.exceptions.DuplicateVoteException;
+import com.rviewer.skeletons.domain.exceptions.InvalidCountryException;
+import com.rviewer.skeletons.services.blockchain.BlockchainService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Service
 public class VoteServiceImpl implements VoteService {
+    private final BlockchainService blockchainService;
+    private final Set<Country> votedCountriesCache = ConcurrentHashMap.newKeySet();
 
-    private final Blockchain blockchain;
-    private final Set<String> votedCountries = new HashSet<>();
-
-    public VoteServiceImpl(Blockchain blockchain) {
-        this.blockchain = blockchain;
+    @Autowired
+    public VoteServiceImpl(BlockchainService blockchainService) {
+        this.blockchainService = blockchainService;
+        initializeCache();
     }
 
     @Override
-    public String submitVote(String origin, String destination) {
+    public String submitVote(String originCode, String destinationCode) {
+        Country origin = validateCountry(originCode);
+        Country destination = validateCountry(destinationCode);
+
+        // Check for duplicates
         if (hasVoted(origin)) {
-            return "Country has already voted.";
+            throw new DuplicateVoteException(originCode);
         }
-        votedCountries.add(origin);
-        // TODO: Logic to add the vote to the blockchain
-        return "Submitted successfully.";
+
+        // Add to blockchain
+        Vote vote = new Vote(origin, destination, System.currentTimeMillis());
+        blockchainService.addBlock(vote);
+        votedCountriesCache.add(origin); // Update cache
+        return "Vote submitted successfully for " + origin + " to " + destination;
     }
 
     @Override
-    public boolean hasVoted(String origin) {
-        return votedCountries.contains(origin);
+    public boolean hasVoted(Country country) {
+        // Check cache
+        if (votedCountriesCache.contains(country)) {
+            return true;
+        }
+
+        // Blockchain scan if not in cache
+        boolean hasVoted = scanBlockchainForVote(country);
+        if (hasVoted) {
+            votedCountriesCache.add(country);
+        }
+        return hasVoted;
     }
 
-    private void markAsVoted(String origin) {
-        // TODO: Add country to voted set
+    private boolean scanBlockchainForVote(Country country) {
+        return blockchainService.getBlockchain().getChain().stream()
+                .skip(1) // Skip genesis block
+                .map(Block::getVote)
+                .filter(Objects::nonNull)
+                .anyMatch(vote -> country.equals(vote.getOrigin()));
+    }
+
+    private void initializeCache() {
+        blockchainService.getBlockchain().getChain().stream()
+                .skip(1) // Skip genesis block
+                .map(Block::getVote)
+                .filter(Objects::nonNull)
+                .map(Vote::getOrigin)
+                .forEach(votedCountriesCache::add);
+    }
+
+    private Country validateCountry(String countryCode) {
+        if (!Country.isValid(countryCode)) {
+            throw new InvalidCountryException(countryCode);
+        }
+        return Country.valueOf(countryCode);
     }
 }
