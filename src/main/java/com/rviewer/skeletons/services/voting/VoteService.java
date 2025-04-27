@@ -1,6 +1,9 @@
 package com.rviewer.skeletons.services.voting;
 
 import com.rviewer.skeletons.domain.blockchain.Country;
+import com.rviewer.skeletons.domain.responses.VoteResult;
+
+import java.util.List;
 
 public interface VoteService {
 
@@ -20,4 +23,12 @@ public interface VoteService {
      * @return boolean Whether the country has voted.
      */
     boolean hasVoted(Country country);
+
+
+    /**
+     * Returns List of VoteResults
+     *
+     * @return list List<VoteResult>
+     */
+    List<VoteResult> getVoteResults();
 }

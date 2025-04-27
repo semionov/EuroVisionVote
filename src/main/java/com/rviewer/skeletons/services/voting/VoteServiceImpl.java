@@ -5,13 +5,16 @@ import com.rviewer.skeletons.domain.blockchain.Country;
 import com.rviewer.skeletons.domain.blockchain.Vote;
 import com.rviewer.skeletons.domain.exceptions.DuplicateVoteException;
 import com.rviewer.skeletons.domain.exceptions.InvalidCountryException;
+import com.rviewer.skeletons.domain.responses.VoteResult;
 import com.rviewer.skeletons.services.blockchain.BlockchainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class VoteServiceImpl implements VoteService {
@@ -78,5 +81,24 @@ public class VoteServiceImpl implements VoteService {
             throw new InvalidCountryException(countryCode);
         }
         return Country.valueOf(countryCode);
+    }
+
+    @Override
+    public List<VoteResult> getVoteResults() {
+        return blockchainService.getBlockchain().getChain().stream()
+                .skip(1) // Skip genesis block
+                .map(Block::getVote)
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(
+                        Vote::getDestination,
+                        Collectors.counting()
+                ))
+                .entrySet().stream()
+                .map(entry -> new VoteResult(
+                        entry.getKey().name(),
+                        entry.getValue().intValue()
+                ))
+                .sorted((a, b) -> Integer.compare(b.getVotes(), a.getVotes())) // Descending
+                .collect(Collectors.toList());
     }
 }
