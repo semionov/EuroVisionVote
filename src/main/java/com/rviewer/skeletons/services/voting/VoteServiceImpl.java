@@ -48,15 +48,24 @@ public class VoteServiceImpl implements VoteService {
     public boolean hasVoted(Country country) {
         // Check cache
         if (votedCountriesCache.contains(country)) {
+            System.out.println("TEST clear cahce inside hasVoted : " + votedCountriesCache.isEmpty());
+            System.out.println("TEST has voted: " + country + " in cache: " + votedCountriesCache.contains(country));
             return true;
         }
 
         // Blockchain scan if not in cache
         boolean hasVoted = scanBlockchainForVote(country);
         if (hasVoted) {
+            System.out.println("TEST has voted: " + country + " in blockchain: " + hasVoted);
             votedCountriesCache.add(country);
         }
         return hasVoted;
+    }
+
+    @Override
+    public void clearCache() {
+        votedCountriesCache.clear();
+        System.out.println("TEST clear cahce: " + votedCountriesCache.isEmpty());
     }
 
     private boolean scanBlockchainForVote(Country country) {

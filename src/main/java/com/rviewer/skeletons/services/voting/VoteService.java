@@ -25,6 +25,8 @@ public interface VoteService {
     boolean hasVoted(Country country);
 
 
+    void clearCache();
+
     /**
      * Returns List of VoteResults
      *

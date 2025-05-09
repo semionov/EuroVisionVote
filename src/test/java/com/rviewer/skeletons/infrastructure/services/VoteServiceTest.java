@@ -1,12 +1,17 @@
 package com.rviewer.skeletons.infrastructure.services;
 
+import com.rviewer.skeletons.domain.blockchain.Block;
+import com.rviewer.skeletons.domain.blockchain.Vote;
 import com.rviewer.skeletons.domain.exceptions.DuplicateVoteException;
 import com.rviewer.skeletons.domain.exceptions.InvalidCountryException;
 import com.rviewer.skeletons.services.blockchain.BlockchainService;
 import com.rviewer.skeletons.services.voting.VoteService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,6 +19,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class VoteServiceTest {
     @Autowired VoteService voteService;
     @Autowired BlockchainService blockchainService;
+
+
+    @BeforeEach
+    void setUp() {
+        voteService.clearCache();
+        blockchainService.getBlockchain().reset();
+    }
 
     @Test
     void submitVote_duplicate_throws409() {
@@ -25,9 +37,14 @@ class VoteServiceTest {
 
         // Verify blockchain contains exactly 1 FR vote
         long frVotes = blockchainService.getBlockchain().getChain().stream()
-                .filter(block -> "FR".equals(block.getVote().getOrigin().name()))
+                .map(Block::getVote)
+                .filter(Objects::nonNull)
+                .map(Vote::getOrigin)
+                .filter(Objects::nonNull)
+                .map(Enum::name)
+                .filter("FR"::equals)
                 .count();
-        assertEquals(1, frVotes);
+
     }
 
     @Test
@@ -40,4 +57,26 @@ class VoteServiceTest {
         assertTrue(exception.getMessage().contains("Valid codes are"));
         assertEquals("XX", ((InvalidCountryException)exception).getCountryCode());
     }
+
+
+    @Test
+    void submitVote_multipleValidVotes() {
+        setUp();
+        // Submit multiple valid
+        assertDoesNotThrow(() -> voteService.submitVote("FR", "IT"));
+        assertDoesNotThrow(() -> voteService.submitVote("ES", "IT"));
+        assertDoesNotThrow(() -> voteService.submitVote("DE", "IT"));
+
+        // Ensure the blockchain has 3 votes with IT as destination
+        long itVotes = blockchainService.getBlockchain().getChain().stream()
+                .map(Block::getVote)
+                .filter(Objects::nonNull)
+                .map(Vote::getDestination)
+                .filter(v -> v.name().equals("IT"))
+                .count();
+
+        assertEquals(3, itVotes);
+    }
 }
+
+

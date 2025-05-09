@@ -84,5 +84,10 @@ public class Blockchain {
     public List<Block> getChain() {
         return new ArrayList<>(chain);
     }
+
+    public void reset() {
+        this.chain = new ArrayList<>();
+        this.chain.add(Block.getGenesisBlock());
+    }
 }
 

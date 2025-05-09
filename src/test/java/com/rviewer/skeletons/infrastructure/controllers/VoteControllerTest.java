@@ -53,7 +53,7 @@ class VoteControllerTest {
 
         mockMvc.perform(get("/votes"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].countryISOCode").value("IT"))
+                .andExpect(jsonPath("$[0].countryCode").value("IT"))
                 .andExpect(jsonPath("$[0].votes").value(5));
     }
 }
