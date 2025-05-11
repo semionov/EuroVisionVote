@@ -11,6 +11,8 @@ public interface BlockchainService {
 
     boolean isValidChain();
 
+    boolean tryToAddReceivedBlock(Block receivedBlock);
+
     boolean replaceChain(Blockchain newChain);
 
     Blockchain getBlockchain();

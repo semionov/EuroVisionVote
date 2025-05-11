@@ -6,12 +6,18 @@ public class Vote {
 
     private final Country origin;
     private final Country destination;
-    private long timestamp;
+    private final long timestamp;
 
     public Vote(Country origin, Country destination, long timestamp) {
         this.origin = origin;
         this.destination = destination;
         this.timestamp = timestamp;
+    }
+
+    public Vote(Vote other) {
+        this.origin = other.origin;
+        this.destination = other.destination;
+        this.timestamp = other.timestamp;
     }
 
     public Country getOrigin() {

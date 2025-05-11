@@ -14,6 +14,14 @@ public class Blockchain {
         this.chain.add(Block.getGenesisBlock());
     }
 
+
+    public Blockchain(Blockchain other) {
+        this.chain = new ArrayList<>();
+        for (Block block : other.getChain()) {
+            this.chain.add(new Block(block)); // Assumes Block has a copy constructor
+        }
+    }
+
     public void addBlock(Block block) {
         // Set the previous hash if this isn't the genesis block
         if (!chain.isEmpty()) {

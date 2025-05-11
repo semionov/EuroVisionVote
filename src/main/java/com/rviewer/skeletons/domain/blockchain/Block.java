@@ -18,6 +18,16 @@ public class Block {
         return genesis;
     }
 
+    public Block() {
+    }
+
+    public Block(Block other) {
+        this.timestamp = other.timestamp;
+        this.hash = other.hash;
+        this.previousHash = other.previousHash;
+        this.vote = other.vote != null ? new Vote(other.vote) : null; // Deep copy vote if needed
+    }
+
     public static String generateHashFromBlock(Block block) {
         String input = block.getTimestamp() + block.getPreviousHash() +
                 (block.getVote() != null ? block.getVote().toString() : "");

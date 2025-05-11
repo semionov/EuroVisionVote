@@ -30,6 +30,19 @@ public class BlockchainServiceImpl implements BlockchainService {
     }
 
     @Override
+    public boolean tryToAddReceivedBlock(Block receivedBlock) {
+        Blockchain tempChain = new Blockchain(blockchain); // deep copy
+        tempChain.addBlock(receivedBlock);
+
+        if (tempChain.isValid()) {
+            blockchain.addBlock(receivedBlock); // trusted append
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean replaceChain(Blockchain newChain) {
         return blockchain.replace(newChain);
     }
