@@ -32,4 +32,12 @@ public class Node {
     public int hashCode() {
         return getAddress().hashCode();
     }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public int getPort() {
+        return port;
+    }
 }
