@@ -1,15 +1,20 @@
 package com.rviewer.skeletons.domain.blockchain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Block {
     private String hash;
     private String previousHash;
     private long timestamp;
     private Vote vote;
 
+    @JsonIgnore
     public static Block getGenesisBlock() {
         Block genesis = new Block();
         genesis.setTimestamp(0L);
