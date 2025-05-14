@@ -6,8 +6,10 @@ import com.rviewer.skeletons.domain.blockchain.Block;
 import com.rviewer.skeletons.domain.blockchain.Blockchain;
 import com.rviewer.skeletons.domain.blockchain.Country;
 import com.rviewer.skeletons.domain.blockchain.Vote;
+import com.rviewer.skeletons.domain.events.NewBlockEvent;
 import com.rviewer.skeletons.services.blockchain.BlockchainService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
@@ -51,10 +53,6 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
     public void connectToPeer(String uri) throws Exception {
         client.doHandshake(this, uri);
     }
-    // Send a block to the peer node
-    public void sendBlock(WebSocketSession session, String blockData) throws Exception {
-        session.sendMessage(new TextMessage(blockData));
-    }
 
     // Broadcast the block to all connected peers
     @Async
@@ -71,44 +69,68 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
 
     private String getBlockchainData() {
         Blockchain blockchain = blockchainService.getBlockchain();
-        // Convert the blockchain to a list of blocks and then serialize it (for example, to JSON)
-        List<Block> chain = blockchain.getChain();
-        List<Map<String, Object>> blockchainJson = new ArrayList<>();
+        List<Map<String, Object>> blockList = new ArrayList<>();
 
-        for (Block block : chain) {
-            Map<String, Object> blockData = new HashMap<>();
-            blockData.put("timestamp", block.getTimestamp());
-            blockData.put("previousHash", block.getPreviousHash());
-            blockData.put("hash", block.getHash());
-
-            // Include the vote data
-            Map<String, String> voteData = new HashMap<>();
-            if (block.getVote() != null) {
-                voteData.put("originCountryCode", block.getVote().getOrigin().toString());
-                voteData.put("destinationCountryCode", block.getVote().getDestination().toString());
-            }
-            blockData.put("vote", voteData);
-
-            blockchainJson.add(blockData);
+        for (Block block : blockchain.getChain()) {
+            blockList.add(blockToMap(block));
         }
 
-        // Convert the list of blocks to JSON
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(blockchainJson);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return "Error serializing blockchain data";
+        return serialize(blockList);
+    }
+
+
+    private void handleReceivedBlock(String blockData) {
+        List<Block> blocks = deserializeBlockchain(blockData);
+        for (Block block : blocks) {
+            if (!blockchainService.tryToAddReceivedBlock(block)) {
+                System.out.println("Rejected invalid block: " + block);
+            }
         }
     }
 
-    private void handleReceivedBlock(String blockData) {
-        ObjectMapper objectMapper = new ObjectMapper();
+
+    @EventListener
+    public void handleNewBlockEvent(NewBlockEvent event) {
+        Block block = event.getBlock();
+        String json = serialize(blockToMap(block));
+        broadcastToPeers(json);
+    }
+
+
+    private Map<String, Object> blockToMap(Block block) {
+        Map<String, Object> blockData = new HashMap<>();
+        blockData.put("timestamp", block.getTimestamp());
+        blockData.put("previousHash", block.getPreviousHash());
+        blockData.put("hash", block.getHash());
+
+        Map<String, String> voteData = new HashMap<>();
+        if (block.getVote() != null) {
+            voteData.put("originCountryCode", block.getVote().getOrigin().toString());
+            voteData.put("destinationCountryCode", block.getVote().getDestination().toString());
+        }
+        blockData.put("vote", voteData);
+
+        return blockData;
+    }
+
+
+    private String serialize(Object obj) {
         try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "Serialization error";
+        }
+    }
+
+    private List<Block> deserializeBlockchain(String blockData) {
+        List<Block> blocks = new ArrayList<>();
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
             List<Map<String, Object>> blockchainJson = objectMapper.readValue(blockData, List.class);
 
             for (Map<String, Object> blockDataMap : blockchainJson) {
-                long timestamp = ((Number) blockDataMap.get("timestamp")).longValue(); // prevent ClassCastException
+                long timestamp = ((Number) blockDataMap.get("timestamp")).longValue();
                 String previousHash = (String) blockDataMap.get("previousHash");
                 String hash = (String) blockDataMap.get("hash");
 
@@ -122,15 +144,14 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
                 block.setHash(hash);
                 block.setVote(new Vote(Country.valueOf(originCountryCode), Country.valueOf(destinationCountryCode), timestamp));
 
-
-                if (!blockchainService.tryToAddReceivedBlock(block)) {
-                    System.out.println("Rejected invalid block: " + block);
-                }
+                blocks.add(block);
             }
         } catch (Exception e) {
-            System.err.println("Failed to process received block data:");
+            System.err.println("Deserialization error:");
             e.printStackTrace();
         }
+        return blocks;
     }
+
 
 }

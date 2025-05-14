@@ -7,7 +7,6 @@ import com.rviewer.skeletons.domain.blockchain.Block;
 import com.rviewer.skeletons.domain.blockchain.Blockchain;
 import com.rviewer.skeletons.domain.blockchain.Vote;
 import com.rviewer.skeletons.domain.events.NewBlockEvent;
-import com.rviewer.skeletons.services.p2p.P2PWebSocketClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -18,14 +17,12 @@ import java.util.Map;
 @Service
 public class BlockchainServiceImpl implements BlockchainService {
     private final Blockchain blockchain;
-    private final P2PWebSocketClient p2PWebSocketClient;
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    public BlockchainServiceImpl(Blockchain blockchain, P2PWebSocketClient p2PWebSocketClient, ApplicationEventPublisher eventPublisher) {
+    public BlockchainServiceImpl(Blockchain blockchain, ApplicationEventPublisher eventPublisher) {
         this.blockchain = blockchain;
         blockchain.addBlock(Block.getGenesisBlock());
-        this.p2PWebSocketClient = p2PWebSocketClient;
         this.eventPublisher = eventPublisher;
     }
 
@@ -37,7 +34,6 @@ public class BlockchainServiceImpl implements BlockchainService {
 
         // Broadcast the new block to all connected peers
         String blockData = convertBlockToJson(newBlock);
-        p2PWebSocketClient.broadcastToPeers(blockData);
         eventPublisher.publishEvent(new NewBlockEvent(newBlock)); // or receivedBlock
 
 
