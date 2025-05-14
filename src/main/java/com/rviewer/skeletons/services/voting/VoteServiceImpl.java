@@ -3,11 +3,13 @@ package com.rviewer.skeletons.services.voting;
 import com.rviewer.skeletons.domain.blockchain.Block;
 import com.rviewer.skeletons.domain.blockchain.Country;
 import com.rviewer.skeletons.domain.blockchain.Vote;
+import com.rviewer.skeletons.domain.events.NewBlockEvent;
 import com.rviewer.skeletons.domain.exceptions.DuplicateVoteException;
 import com.rviewer.skeletons.domain.exceptions.InvalidCountryException;
 import com.rviewer.skeletons.domain.responses.VoteResult;
 import com.rviewer.skeletons.services.blockchain.BlockchainService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -110,4 +112,15 @@ public class VoteServiceImpl implements VoteService {
                 .sorted((a, b) -> Integer.compare(b.getVotes(), a.getVotes())) // Descending
                 .collect(Collectors.toList());
     }
+
+
+    @EventListener
+    public void handleNewBlockEvent(NewBlockEvent event) {
+        Vote vote = event.getBlock().getVote();
+        if (vote != null) {
+            votedCountriesCache.add(vote.getOrigin());
+            //System.out.println("Cache updated from NewBlockEvent for origin: " + vote.getOrigin());
+        }
+    }
+
 }
