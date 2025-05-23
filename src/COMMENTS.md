@@ -38,6 +38,13 @@ Because the system assumes:
 
 ---
 
+Testing Notes
+
+- Peer connections in the P2P network were successfully tested.
+- Vote endpoints and synchronization were partially tested:
+ - submitting a vote to one peer and attempting the same vote on another results in a failure
+  , this behavior confirms that blockchain synchronization between peers is functioning correctly and reflects shared state.
+
 Assumptions
 
 - Nodes are trusted (no fake peers)
