@@ -50,15 +50,12 @@ public class VoteServiceImpl implements VoteService {
     public boolean hasVoted(Country country) {
         // Check cache
         if (votedCountriesCache.contains(country)) {
-            System.out.println("TEST clear cahce inside hasVoted : " + votedCountriesCache.isEmpty());
-            System.out.println("TEST has voted: " + country + " in cache: " + votedCountriesCache.contains(country));
             return true;
         }
 
         // Blockchain scan if not in cache
         boolean hasVoted = scanBlockchainForVote(country);
         if (hasVoted) {
-            System.out.println("TEST has voted: " + country + " in blockchain: " + hasVoted);
             votedCountriesCache.add(country);
         }
         return hasVoted;
@@ -67,7 +64,6 @@ public class VoteServiceImpl implements VoteService {
     @Override
     public void clearCache() {
         votedCountriesCache.clear();
-        System.out.println("TEST clear cahce: " + votedCountriesCache.isEmpty());
     }
 
     private boolean scanBlockchainForVote(Country country) {
@@ -75,7 +71,7 @@ public class VoteServiceImpl implements VoteService {
                 .skip(1) // Skip genesis block
                 .map(Block::getVote)
                 .filter(Objects::nonNull)
-                .anyMatch(vote -> country.equals(vote.getOrigin()));
+                .anyMatch(vote -> country.equals(vote.getOriginCountryCode()));
     }
 
     private void initializeCache() {
@@ -83,7 +79,7 @@ public class VoteServiceImpl implements VoteService {
                 .skip(1) // Skip genesis block
                 .map(Block::getVote)
                 .filter(Objects::nonNull)
-                .map(Vote::getOrigin)
+                .map(Vote::getOriginCountryCode)
                 .forEach(votedCountriesCache::add);
     }
 
@@ -101,7 +97,7 @@ public class VoteServiceImpl implements VoteService {
                 .map(Block::getVote)
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(
-                        Vote::getDestination,
+                        Vote::getDestinationCountryCode,
                         Collectors.counting()
                 ))
                 .entrySet().stream()
@@ -118,8 +114,7 @@ public class VoteServiceImpl implements VoteService {
     public void handleNewBlockEvent(NewBlockEvent event) {
         Vote vote = event.getBlock().getVote();
         if (vote != null) {
-            votedCountriesCache.add(vote.getOrigin());
-            //System.out.println("Cache updated from NewBlockEvent for origin: " + vote.getOrigin());
+            votedCountriesCache.add(vote.getOriginCountryCode());
         }
     }
 

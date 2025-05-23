@@ -48,5 +48,7 @@ Assumptions
 ---
 
 
+Initially the whole chain was broadcasted to ensure state consistency during peer joins. Broadcasting opotimized by sending only the newly added block.
+
 The combination of a clean blockchain model, WebSocket P2P layer, and Spring Boot features like events and REST APIs makes the system both robust and extensible.
 

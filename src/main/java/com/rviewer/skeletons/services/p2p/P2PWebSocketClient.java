@@ -8,6 +8,8 @@ import com.rviewer.skeletons.domain.blockchain.Country;
 import com.rviewer.skeletons.domain.blockchain.Vote;
 import com.rviewer.skeletons.domain.events.NewBlockEvent;
 import com.rviewer.skeletons.services.blockchain.BlockchainService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -31,11 +33,12 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
 
     private WebSocketClient client = new StandardWebSocketClient();
     private List<WebSocketSession> activeSessions = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(P2PWebSocketClient.class);
+
 
     // Called when a connection is established
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        System.out.println("Connected to peer node: " + session.getUri());
         activeSessions.add(session);
 
         String blockchainData = getBlockchainData();
@@ -45,9 +48,18 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
     // Handle incoming messages from the peer node
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        System.out.println("Received message: " + message.getPayload());
-        // Process the received block, validate and add it to the blockchain if necessary
-        handleReceivedBlock(message.getPayload());
+        String payload = message.getPayload();
+        logger.info("Received message: " + payload);
+
+        if (payload.startsWith("[")) { // crude way to detect a list of blocks
+            List<Block> blocks = deserializeBlockchain(payload);
+            for (Block block : blocks) {
+                blockchainService.tryToAddReceivedBlock(block);
+            }
+        } else {
+            Block block = deserializeSingleBlock(payload);
+            blockchainService.tryToAddReceivedBlock(block);
+        }
     }
 
     public void connectToPeer(String uri) throws Exception {
@@ -58,10 +70,12 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
     @Async
     public void broadcastToPeers(String blockData) {
         for (WebSocketSession session : activeSessions) {
+            logger.info("Broadcasting to " + activeSessions.size() + " peers.");
             try {
+                logger.info("Sending to: " + session.getRemoteAddress() + " => " + blockData);
                 session.sendMessage(new TextMessage(blockData)); // Send the block data to each active session (peer)
             } catch (Exception e) {
-                System.err.println("Error broadcasting block to peer: " + session.getUri());
+                logger.error("Error broadcasting block to peer: " + session.getUri());
                 e.printStackTrace();
             }
         }
@@ -83,7 +97,7 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
         List<Block> blocks = deserializeBlockchain(blockData);
         for (Block block : blocks) {
             if (!blockchainService.tryToAddReceivedBlock(block)) {
-                System.out.println("Rejected invalid block: " + block);
+                logger.warn("Rejected invalid block: " + block);
             }
         }
     }
@@ -91,8 +105,8 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
 
     @EventListener
     public void handleNewBlockEvent(NewBlockEvent event) {
-        Block block = event.getBlock();
-        String json = serialize(blockToMap(block));
+        logger.info("Broadcasting new block: {}" + event.getBlock());
+        String json = serialize(blockToMap(event.getBlock()));
         broadcastToPeers(json);
     }
 
@@ -105,8 +119,8 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
 
         Map<String, String> voteData = new HashMap<>();
         if (block.getVote() != null) {
-            voteData.put("originCountryCode", block.getVote().getOrigin().toString());
-            voteData.put("destinationCountryCode", block.getVote().getDestination().toString());
+            voteData.put("originCountryCode", block.getVote().getOriginCountryCode().toString());
+            voteData.put("destinationCountryCode", block.getVote().getDestinationCountryCode().toString());
         }
         blockData.put("vote", voteData);
 
@@ -151,6 +165,31 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
             e.printStackTrace();
         }
         return blocks;
+    }
+
+
+    private Block deserializeSingleBlock(String data) {
+        try {
+            Map<String, Object> blockDataMap = new ObjectMapper().readValue(data, Map.class);
+            long timestamp = ((Number) blockDataMap.get("timestamp")).longValue();
+            String previousHash = (String) blockDataMap.get("previousHash");
+            String hash = (String) blockDataMap.get("hash");
+
+            Map<String, String> voteData = (Map<String, String>) blockDataMap.get("vote");
+            String originCountryCode = voteData.get("originCountryCode");
+            String destinationCountryCode = voteData.get("destinationCountryCode");
+
+            Block block = new Block();
+            block.setTimestamp(timestamp);
+            block.setPreviousHash(previousHash);
+            block.setHash(hash);
+            block.setVote(new Vote(Country.valueOf(originCountryCode), Country.valueOf(destinationCountryCode), timestamp));
+
+            return block;
+        } catch (Exception e) {
+            logger.error("Failed to deserialize single block", e);
+            return null;
+        }
     }
 
 

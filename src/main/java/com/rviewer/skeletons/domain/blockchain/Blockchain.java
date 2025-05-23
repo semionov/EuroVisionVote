@@ -11,25 +11,24 @@ public class Blockchain {
 
     public Blockchain() {
         this.chain = new ArrayList<>();
-        this.chain.add(Block.getGenesisBlock());
     }
 
 
     public Blockchain(Blockchain other) {
         this.chain = new ArrayList<>();
         for (Block block : other.getChain()) {
-            this.chain.add(new Block(block)); // Assumes Block has a copy constructor
+            this.chain.add(new Block(block)); // copy constructor
         }
     }
 
     public void addBlock(Block block) {
+        block.setTimestamp(System.currentTimeMillis());
         // Set the previous hash if this isn't the genesis block
         if (!chain.isEmpty()) {
             block.setPreviousHash(getLastBlock().getHash());
+            block.setHash(Block.generateHashFromBlock(block));  //TO-DO
         }
 
-        block.setTimestamp(System.currentTimeMillis());
-        block.setHash(Block.generateHashFromBlock(block));
         chain.add(block);
     }
 

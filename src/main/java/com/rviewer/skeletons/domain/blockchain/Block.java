@@ -19,7 +19,7 @@ public class Block {
         Block genesis = new Block();
         genesis.setTimestamp(0L);
         genesis.setPreviousHash("0");
-        genesis.setHash(generateHashFromBlock(genesis));
+        genesis.setHash("f1534392279bddbf9d43dde8701cb5be14b82f76ec6607bf8d6ad557f60f304e");
         return genesis;
     }
 

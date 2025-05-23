@@ -39,7 +39,7 @@ class VoteServiceTest {
         long frVotes = blockchainService.getBlockchain().getChain().stream()
                 .map(Block::getVote)
                 .filter(Objects::nonNull)
-                .map(Vote::getOrigin)
+                .map(Vote::getOriginCountryCode)
                 .filter(Objects::nonNull)
                 .map(Enum::name)
                 .filter("FR"::equals)
@@ -71,7 +71,7 @@ class VoteServiceTest {
         long itVotes = blockchainService.getBlockchain().getChain().stream()
                 .map(Block::getVote)
                 .filter(Objects::nonNull)
-                .map(Vote::getDestination)
+                .map(Vote::getDestinationCountryCode)
                 .filter(v -> v.name().equals("IT"))
                 .count();
 

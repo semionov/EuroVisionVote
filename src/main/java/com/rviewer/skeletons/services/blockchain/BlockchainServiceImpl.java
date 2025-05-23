@@ -76,6 +76,11 @@ public class BlockchainServiceImpl implements BlockchainService {
         return blockchain;
     }
 
+    @Override
+    public Block getLatestBlock() {
+        return blockchain.getLastBlock();
+    }
+
 
     // Method to convert a Block to JSON (similar to getBlockchainData)
     private String convertBlockToJson(Block block) {
@@ -87,8 +92,8 @@ public class BlockchainServiceImpl implements BlockchainService {
 
         Map<String, String> voteData = new HashMap<>();
         if (block.getVote() != null) {
-            voteData.put("originCountryCode", block.getVote().getOrigin().toString());
-            voteData.put("destinationCountryCode", block.getVote().getDestination().toString());
+            voteData.put("originCountryCode", block.getVote().getOriginCountryCode().toString());
+            voteData.put("destinationCountryCode", block.getVote().getDestinationCountryCode().toString());
         }
         blockData.put("vote", voteData);
 

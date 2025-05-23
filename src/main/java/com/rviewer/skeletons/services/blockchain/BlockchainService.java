@@ -16,5 +16,7 @@ public interface BlockchainService {
     boolean replaceChain(Blockchain newChain);
 
     Blockchain getBlockchain();
+
+    Block getLatestBlock();
 }
 

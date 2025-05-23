@@ -32,7 +32,6 @@ public class NodeController {
         boolean added = nodeService.registerNode(new Node(ip, port));
 
         if (added) {
-            p2PWebSocketClient.connectToPeer("ws://" + ip + ":" + port + "/ws");
             return ResponseEntity.ok("Node registered and connected: ws://" + ip + ":" + port);
         } else {
             return ResponseEntity.ok("Node already registered");

@@ -4,28 +4,34 @@ import java.util.Objects;
 
 public class Vote {
 
-    private final Country origin;
-    private final Country destination;
+    private final Country originCountryCode;
+    private final Country destinationCountryCode;
     private final long timestamp;
 
-    public Vote(Country origin, Country destination, long timestamp) {
-        this.origin = origin;
-        this.destination = destination;
+    public Vote() {
+        this.originCountryCode = null;
+        this.destinationCountryCode = null;
+        this.timestamp = 0L;
+    }
+
+    public Vote(Country originCountryCode, Country destinationCountryCode, long timestamp) {
+        this.originCountryCode = originCountryCode;
+        this.destinationCountryCode = destinationCountryCode;
         this.timestamp = timestamp;
     }
 
     public Vote(Vote other) {
-        this.origin = other.origin;
-        this.destination = other.destination;
+        this.originCountryCode = other.originCountryCode;
+        this.destinationCountryCode = other.destinationCountryCode;
         this.timestamp = other.timestamp;
     }
 
-    public Country getOrigin() {
-        return origin;
+    public Country getOriginCountryCode() {
+        return originCountryCode;
     }
 
-    public Country getDestination() {
-        return destination;
+    public Country getDestinationCountryCode() {
+        return destinationCountryCode;
     }
 
     public long getTimestamp() {
@@ -34,7 +40,7 @@ public class Vote {
 
     @Override
     public String toString() {
-        return origin + " -> " + destination;
+        return originCountryCode + " -> " + destinationCountryCode;
     }
 
     @Override
@@ -49,11 +55,11 @@ public class Vote {
         }
 
         Vote vote = (Vote) o;
-        return origin.equals(vote.origin) && destination.equals(vote.destination);
+        return originCountryCode.equals(vote.originCountryCode) && destinationCountryCode.equals(vote.destinationCountryCode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, destination);
+        return Objects.hash(originCountryCode, destinationCountryCode);
     }
 }
