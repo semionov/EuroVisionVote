@@ -1,4 +1,4 @@
-package com.rviewer.skeletons.infrastructure.controllers;
+package com.rviewer.skeletons.infrastructure.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
