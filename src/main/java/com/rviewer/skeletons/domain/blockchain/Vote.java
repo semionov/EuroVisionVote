@@ -20,11 +20,6 @@ public class Vote {
         this.timestamp = timestamp;
     }
 
-    public Vote(Vote other) {
-        this.originCountryCode = other.originCountryCode;
-        this.destinationCountryCode = other.destinationCountryCode;
-        this.timestamp = other.timestamp;
-    }
 
     public Country getOriginCountryCode() {
         return originCountryCode;

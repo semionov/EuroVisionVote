@@ -16,11 +16,5 @@ public enum Country {
             return false;
         }
     }
-
-    public static String validCodes() {
-        return Arrays.stream(values())
-                .map(Enum::name)
-                .collect(Collectors.joining(", "));
-    }
 }
 

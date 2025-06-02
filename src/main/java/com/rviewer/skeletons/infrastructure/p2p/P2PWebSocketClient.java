@@ -1,4 +1,4 @@
-package com.rviewer.skeletons.services.p2p;
+package com.rviewer.skeletons.infrastructure.p2p;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +51,7 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
         String payload = message.getPayload();
         logger.info("Received message: " + payload);
 
-        if (payload.startsWith("[")) { // crude way to detect a list of blocks
+        if (payload.startsWith("[")) {
             List<Block> blocks = deserializeBlockchain(payload);
             for (Block block : blocks) {
                 blockchainService.tryToAddReceivedBlock(block);
@@ -119,8 +119,13 @@ public class P2PWebSocketClient extends TextWebSocketHandler {
 
         Map<String, String> voteData = new HashMap<>();
         if (block.getVote() != null) {
-            voteData.put("originCountryCode", block.getVote().getOriginCountryCode().toString());
-            voteData.put("destinationCountryCode", block.getVote().getDestinationCountryCode().toString());
+            if (block.getVote().getOriginCountryCode() != null) {
+                voteData.put("originCountryCode", block.getVote().getOriginCountryCode().toString());
+            }
+
+            if (block.getVote().getDestinationCountryCode() != null) {
+                voteData.put("destinationCountryCode", block.getVote().getDestinationCountryCode().toString());
+            }
         }
         blockData.put("vote", voteData);
 

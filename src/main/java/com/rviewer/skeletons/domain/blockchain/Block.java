@@ -26,12 +26,6 @@ public class Block {
     public Block() {
     }
 
-    public Block(Block other) {
-        this.timestamp = other.timestamp;
-        this.hash = other.hash;
-        this.previousHash = other.previousHash;
-        this.vote = other.vote != null ? new Vote(other.vote) : null; // Deep copy vote if needed
-    }
 
     public static String generateHashFromBlock(Block block) {
         String input = block.getTimestamp() + block.getPreviousHash() +
@@ -53,7 +47,7 @@ public class Block {
 
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 unavailable", e); // Unreachable in practice
+            throw new RuntimeException("SHA-256 unavailable", e);
         }
     }
 

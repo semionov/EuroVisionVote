@@ -10,8 +10,7 @@ public class InvalidCountryException extends RuntimeException {
     private final String countryCode;
 
     public InvalidCountryException(String countryCode) {
-        super(String.format("Invalid country code: %s. Valid codes are: %s",
-                countryCode, Country.validCodes()));
+        super("These country is not taking part in the show");
         this.countryCode = countryCode;
     }
 

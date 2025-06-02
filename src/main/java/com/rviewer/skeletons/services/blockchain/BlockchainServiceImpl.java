@@ -33,9 +33,7 @@ public class BlockchainServiceImpl implements BlockchainService {
         blockchain.addBlock(newBlock);
 
         // Broadcast the new block to all connected peers
-        String blockData = convertBlockToJson(newBlock);
         eventPublisher.publishEvent(new NewBlockEvent(newBlock)); // or receivedBlock
-
 
         return newBlock;
     }
@@ -67,8 +65,28 @@ public class BlockchainServiceImpl implements BlockchainService {
 
 
     @Override
-    public boolean replaceChain(Blockchain newChain) {
-        return blockchain.replace(newChain);
+    public boolean replaceBlockchainIfValid (Blockchain incomingBlockcain) {
+        // Basic validation
+        if (incomingBlockcain == null || incomingBlockcain.getChain().isEmpty()) {
+            return false;
+        }
+
+        // Check if new chain is longer than current
+        if (incomingBlockcain.getChain().size() <= blockchain.getChain().size()) {
+            return false;
+        }
+
+        // Validate genesis block
+        if (!incomingBlockcain.getGenesis().getHash().equals(blockchain.getGenesis().getHash())) {
+            return false;
+        }
+
+        // Check integrity of blockchain
+        if (!incomingBlockcain.isValid()) {
+            return false;
+        }
+
+        return blockchain.replace(incomingBlockcain);
     }
 
     @Override
@@ -79,6 +97,16 @@ public class BlockchainServiceImpl implements BlockchainService {
     @Override
     public Block getLatestBlock() {
         return blockchain.getLastBlock();
+    }
+
+    @Override
+    public long getLengthOfChain() {
+        return blockchain.getChain().size();
+    }
+
+    @Override
+    public void resetBlockchain() {
+        blockchain.reset();
     }
 
 

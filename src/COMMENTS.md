@@ -59,3 +59,17 @@ Initially the whole chain was broadcasted to ensure state consistency during pee
 
 The combination of a clean blockchain model, WebSocket P2P layer, and Spring Boot features like events and REST APIs makes the system both robust and extensible.
 
+---
+
+Peer Connection Testing
+
+Peer-to-peer network functionality was tested successfully.
+- Nodes could connect and establish bi-directional WebSocket communication.
+- Vote endpoints were tested via Postman: voting from one node affects validation in others, confirming that blockchain synchronization works as intended.
+
+---
+
+Final Remarks
+
+The application was tested under various scenarios, and recent improvements were implemented successfully. Everything works as expected.
+My account at shakers was blocked without any reason, and I received no response from the support email, it´s sad. Regardless, I will include this project in my personal portfolio.

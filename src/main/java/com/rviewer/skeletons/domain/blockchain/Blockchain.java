@@ -14,19 +14,12 @@ public class Blockchain {
     }
 
 
-    public Blockchain(Blockchain other) {
-        this.chain = new ArrayList<>();
-        for (Block block : other.getChain()) {
-            this.chain.add(new Block(block)); // copy constructor
-        }
-    }
-
     public void addBlock(Block block) {
         block.setTimestamp(System.currentTimeMillis());
         // Set the previous hash if this isn't the genesis block
         if (!chain.isEmpty()) {
             block.setPreviousHash(getLastBlock().getHash());
-            block.setHash(Block.generateHashFromBlock(block));  //TO-DO
+            block.setHash(Block.generateHashFromBlock(block));
         }
 
         chain.add(block);
@@ -34,17 +27,6 @@ public class Blockchain {
 
     public boolean isValid() {
         // Validate the integrity of the blockchain
-        // Check genesis block
-        if (chain.isEmpty()) {
-            return true;
-        }
-
-        Block genesis = chain.get(0);
-        if (!genesis.getHash().equals(Block.generateHashFromBlock(genesis))) {
-            return false;
-        }
-
-        // Check blocks
         for (int i = 1; i < chain.size(); i++) {
             Block current = chain.get(i);
             Block previous = chain.get(i - 1);
@@ -66,30 +48,23 @@ public class Blockchain {
         return chain.get(chain.size() - 1);
     }
 
+    public Block getGenesis() {
+        return chain.get(0);
+    }
+
+    // Replace the chain
     public boolean replace(Blockchain newBlockchain) {
-        // Basic validation
-        if (newBlockchain == null || newBlockchain.getChain().isEmpty()) {
-            return false;
-        }
-
-        // Check if new chain is valid
-        if (!newBlockchain.isValid()) {
-            return false;
-        }
-
-        // Check if new chain is longer than current
-        if (newBlockchain.getChain().size() <= this.chain.size()) {
-            return false;
-        }
-
-        // Replace the chain
         this.chain = new ArrayList<>(newBlockchain.getChain());
         return true;
     }
 
     // Getters and setters
     public List<Block> getChain() {
-        return new ArrayList<>(chain);
+        return chain;
+    }
+
+    public void setChain(List<Block> chain) {
+        this.chain = chain;
     }
 
     public void reset() {

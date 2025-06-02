@@ -1,4 +1,4 @@
-package com.rviewer.skeletons.infrastructure.controllers;
+package com.rviewer.skeletons.infrastructure.api;
 
 import com.rviewer.skeletons.domain.exceptions.DuplicateVoteException;
 import com.rviewer.skeletons.domain.responses.VoteResult;
@@ -37,7 +37,7 @@ class VoteControllerTest {
 
     @Test
     void submitVote_shouldReturn409() throws Exception {
-        doThrow(new DuplicateVoteException("FR"))
+        doThrow(new DuplicateVoteException())
                 .when(voteService).submitVote("FR", "IT");
 
         mockMvc.perform(post("/votes/FR/IT"))

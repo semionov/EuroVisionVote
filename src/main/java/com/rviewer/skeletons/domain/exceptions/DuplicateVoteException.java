@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.CONFLICT)
 public class DuplicateVoteException extends RuntimeException {
-    public DuplicateVoteException(String countryCode) {
-        super(String.format("Country %s has already voted", countryCode));
+    public DuplicateVoteException() {
+        super("This country has already voted");
     }
 }

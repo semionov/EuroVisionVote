@@ -23,8 +23,8 @@ class VoteServiceTest {
 
     @BeforeEach
     void setUp() {
-        voteService.clearCache();
         blockchainService.getBlockchain().reset();
+        voteService.loadCache();
     }
 
     @Test

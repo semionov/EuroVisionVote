@@ -25,7 +25,13 @@ public interface VoteService {
     boolean hasVoted(Country country);
 
 
-    void clearCache();
+
+    /**
+     * Reset any internally cached voting data.
+     *
+     * This method is typically used during testing scenarios
+     */
+    void loadCache();
 
     /**
      * Returns List of VoteResults

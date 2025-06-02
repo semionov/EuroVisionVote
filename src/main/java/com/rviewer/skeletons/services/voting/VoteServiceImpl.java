@@ -36,7 +36,7 @@ public class VoteServiceImpl implements VoteService {
 
         // Check for duplicates
         if (hasVoted(origin)) {
-            throw new DuplicateVoteException(originCode);
+            throw new DuplicateVoteException();
         }
 
         // Add to blockchain
@@ -62,7 +62,12 @@ public class VoteServiceImpl implements VoteService {
     }
 
     @Override
-    public void clearCache() {
+    public void loadCache() {
+        clearCache();
+        initializeCache();
+    }
+
+    private void clearCache() {
         votedCountriesCache.clear();
     }
 

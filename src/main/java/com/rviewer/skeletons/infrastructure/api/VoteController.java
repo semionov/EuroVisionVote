@@ -1,4 +1,4 @@
-package com.rviewer.skeletons.infrastructure.controllers;
+package com.rviewer.skeletons.infrastructure.api;
 
 import com.rviewer.skeletons.domain.exceptions.DuplicateVoteException;
 import com.rviewer.skeletons.domain.exceptions.InvalidCountryException;
@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/votes")
@@ -21,7 +22,7 @@ public class VoteController {
     }
 
     @PostMapping("/{originCountryCode}/{destinationCountryCode}")
-    public ResponseEntity<Void> submitVote(
+    public ResponseEntity<?> submitVote(
             @PathVariable String originCountryCode,
             @PathVariable String destinationCountryCode) {
 
@@ -29,9 +30,11 @@ public class VoteController {
             voteService.submitVote(originCountryCode, destinationCountryCode);
             return ResponseEntity.noContent().build(); // HTTP 204
         } catch (DuplicateVoteException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // HTTP 409
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage())); // HTTP 409
         } catch (InvalidCountryException e) {
-            return ResponseEntity.notFound().build(); // HTTP 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage())); // HTTP 404
         }
     }
 
